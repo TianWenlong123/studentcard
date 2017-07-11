@@ -139,7 +139,7 @@ void loop() {
         Serial.println(mfrc522.GetStatusCodeName(status));
         return;
     }
-/*
+
     // Write data to the block
     Serial.print(F("Writing data into block ")); Serial.print(blockAddr);
     Serial.println(F(" ..."));
@@ -180,7 +180,7 @@ void loop() {
     }
     Serial.println();
 
-*/
+
     
     // Dump the sector data
     Serial.println(F("Current data in sector:"));
