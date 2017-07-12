@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import Queue
-import serail
+import serial
 
 class Ser(object):
     def __init__(self):
@@ -27,8 +27,8 @@ class NewCard:
         self.passwd = "******"
         self.passwd_len = 6
 
-    def getInfo(self):
-        file = open("NewCardInfo.txt")
+    def getInfo(self,filename):
+        file = open(filename)
         #考虑增加验证
         index = 0
 
@@ -49,9 +49,22 @@ class NewCard:
         line = file.readline()
         index = line.index('=') + 2
         self.passwd = line[index:index + self.passwd_len]
+        return 1
 
-    def writeInfo(self):
-        
+    def writeInfo(self,ser):
+        #写ID
+        response = ser.send_cmd(self.ID)
+        print response
+        #判断response是否正确...
+
+        #写起始时间和终止时间
+        response = ser.send_cmd(self.begin_time)
+        #...
+        response = ser.send_cmd(self.end_time)
+
+        #写passwd
+        response = ser.send_cmd(self.passwd)
+
 
 
 
