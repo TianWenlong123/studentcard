@@ -2,6 +2,8 @@
 import Queue
 import serial
 
+MAC_PORT = "/dev/cu.usbmodem1411"
+
 class Ser(object):
     def __init__(self):
         #打开端口
