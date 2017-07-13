@@ -6,19 +6,35 @@ class Controller:
         #初始化
         self.ser = Ser()
         self.state=''
+        self.card = NewCard()
 
     def createNew(self,filename):
-        card = NewCard()
+        if(self.card.getInfo(filename)):
+            self.card.writeInfo(self.ser)
 
-        if(card.getInfo(filename)):
-            card.writeInfo(self.ser)
+    def cancelCard(self):
+        self.ser.send_cmd('Cancel')
 
-    #def cancelCard(self):
+    def register(self,begint,endt):
+        self.ser.send_cmd(begint)
+        self.ser.send_cmd(endt)
 
     #def accesscrl(self):
-
-    #def register(self):
 
     #def consume(self):
 
     #def store(self):
+
+    def waitCard(self):
+        text = ''
+        text = self.ser.port.readline()
+        while text == '':
+            text = self.ser.port.readline()
+
+        while text:
+            print text
+            text = self.ser.port.readline()
+
+
+
+
