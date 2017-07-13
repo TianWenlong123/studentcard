@@ -1,7 +1,7 @@
 /*
- * CMD format:
+ * CMD format: total length is 54 chars
  * | 4  | 2| 2| 2| 2| KEY        | Data 
- *  WRTE SN BA SZ TA FFFFFFFFFFFF 0123456789012345
+ *  WRTE SN BA SZ TA FFFFFFFFFFFF 0123456789012345 * 2
  *  READ SN BA SZ TA FFFFFFFFFFFF
  *  CLSE
  */
@@ -15,25 +15,10 @@ constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
 MFRC522::MIFARE_Key key;
-MFRC522::MIFARE_Key validKeyA;
-
 MFRC522::PICC_Type piccType;
 
-enum CreateNewState {
-    ST_START,
-    ST_NO_CARD,     // detect card
-    ST_VERIFY_CARD, // verify card, wait for info from serial
-    ST_WAIT_INFO,   // wait info from serial
-    ST_WRITE_CARD,  // write info into card
-    ST_DONE         // 
-} newState = ST_START;
-
 String cmd;
-long newID = 0x00112233;
 
-/*
- * 校园卡制作
- */
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600); // Initialize serial communications with the PC
@@ -45,9 +30,6 @@ void setup() {
     // using FFFFFFFFFFFFh which is the default at chip delivery from the factory
     for (byte i = 0; i < 6; i++) {
         key.keyByte[i] = 0xFF;
-    }
-    for (byte i = 0; i < 6; i++) {
-        validKeyA.keyByte[i] = 0xFF;
     }
 
     Serial.println(F("Scan a MIFARE Classic PICC"));
@@ -104,29 +86,38 @@ void loop() {
         if (cmd.length() < 4)
             continue;
         
-        sector       = cmd.substring(4, 6).toInt();
-        blockAddr    = cmd.substring(6, 8).toInt();
+        blockAddr    = cmd.substring(4, 8).toInt(); // sector  = blockAddr / 4;
         size         = cmd.substring(8, 10).toInt();
         trailerBlock = cmd.substring(10, 12).toInt();
         byte pos = 12;
         
-        for (byte i = 0; i < 6; i++, pos++) {
+        for (byte i = 0; i < 6; i++) {
             byte hi, lo;
             hi = cmd[pos] >= 'A' ? cmd[pos] - 'A' + 10 : cmd[pos] - '0';
             pos++;
             lo = cmd[pos] >= 'A' ? cmd[pos] - 'A' + 10 : cmd[pos] - '0';
+            pos++;
             key.keyByte[i] = hi * 16 + lo;
         }
 
         if (cmd.substring(0, 4) == "WRTE") {
             Serial.print("WRTE:\t");
+            for (int i = 0; i < size; ++i) {
+                byte hi, lo;
+                hi = cmd[pos] >= 'A' ? cmd[pos] - 'A' + 10 : cmd[pos] - '0';
+                pos++;
+                lo = cmd[pos] >= 'A' ? cmd[pos] - 'A' + 10 : cmd[pos] - '0';
+                pos++;
+                dataBlock[i] = hi * 16 + lo;
+            }
         } else if (cmd.substring(0, 4) == "READ") {
             Serial.print("READ:\t");
         } else if (cmd.substring(0, 4) == "CLSE") {
             Serial.print("Close.\t");
+            // end of cmd loop
             break;
         }
-            
+
         Serial.print(sector, DEC);
         Serial.print("\t");
         Serial.print(blockAddr, DEC);
@@ -136,6 +127,8 @@ void loop() {
         Serial.print(trailerBlock, DEC);
         Serial.print("\t");
         dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
+        Serial.print("\ndata:\t");
+        dump_byte_array(dataBlock, 16);
         Serial.println();
     }
     
@@ -145,23 +138,6 @@ void loop() {
     mfrc522.PCD_StopCrypto1();
 }
 
-
-
-
-int getNewCardInfo()
-{
-    if ( Serial.available() > 0 ) {
-        // 2014011111
-        newID = Serial.parseInt(); // return value if long(32 bit)
-        if (newID == 0)
-            return 0;
-        Serial.print(F("ID is: ")); Serial.println(newID);
-        //comData += char(Serial.read());
-    } else  {
-        return 0;
-    }
-    return 1;
-}
 
 int writeToBlock(byte sector, byte blockAddr, byte dataBlock[])
 {
