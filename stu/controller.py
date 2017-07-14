@@ -1,17 +1,35 @@
 # -*- coding: utf-8 -*-
-from data_type import *
+from card import Card
+from myserial import MySerial, MAC_PORT
 
 class Controller:
-    def __init__(self):
+    def __init__(self, portname=None):
         #初始化
-        self.ser = Ser()
+        if portname == None:
+            self.ser = MySerial()
+        else:
+            self.ser = MySerial(portname)
         self.state=''
+        self.card = Card()
 
-    def createNew(self,filename):
-        card = NewCard()
+    def available(self):
+        return self.ser.isOpen()
 
-        if(card.getInfo(filename)):
-            card.writeInfo(self.ser)
+    def createNew(self, filename):
+        if(self.card.getInfo(filename)):
+            cmds = self.card.newCardInitCommands()
+            for cmd in cmds:
+                response = self.ser.sendCmd(cmd)
+                if not response or len(response) < 4 or response[0:4] != 'OKAY':
+                    print 'Error!', response
+                    # return False
+                else:
+                    print response
+
+    def sendCmd(self, cmd):
+        response = self.ser.sendCmd(cmd)
+        return response
+
 
     #def cancelCard(self):
 
