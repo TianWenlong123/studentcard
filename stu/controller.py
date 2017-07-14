@@ -18,22 +18,21 @@ class Controller:
     def createNew(self, filename):
         if(self.card.getInfo(filename)):
             cmds = self.card.newCardInitCommands()
-            for cmd in cmds:
-                #print cmd
-                response = self.ser.sendCmd(cmd)
-                if not response or len(response) < 4 or response[0:4] != 'OKAY':
-                    print 'Error!', response
-                    # return False
-                else:
-                    print response
+            self.sendCmd(cmds)
 
-    def sendCmd(self, cmd):
-        response = self.ser.sendCmd(cmd)
-        return response
+    def sendCmd(self, cmds):
+        for cmd in cmds:
+            # print cmd
+            response = self.ser.sendCmd(cmd)
+            if not response or len(response) < 4 or response[0:4] != 'OKAY':
+                print 'Error!', response
+                # return False
+            else:
+                print response
 
     def register(self,begint,endt):
-        self.ser.send_cmd(begint)
-        self.ser.send_cmd(endt)
+        cmds = self.card.updateTimeCommands(begint,endt)
+        self.sendCmd(cmds)
 
     #def accesscrl(self):
 

@@ -152,3 +152,13 @@ class Card:
         cmds.append(cmd)
 
         return cmds
+
+    def updateTimeCommands(self,begint,endt):
+        cmds = []
+        # write begin time and end time
+        cmd = self.updateBeginTimeCmd(begint)
+        cmds.append(cmd)
+        cmd = self.updateEndTimeCmd(endt)
+        cmds.append(cmd)
+
+        return cmds
