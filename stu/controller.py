@@ -40,32 +40,32 @@ class Controller:
         #读取金额
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
-        index = response.index(':')
+        index = response.index(':')+1
         print index
-        print response[index:index+8].decode('hex')
-
-
+        str = '0x' + response[index:index + 8]
+        old_money = int(str, 16)
+        new_money = float(old_money - money * 100) / 100
+        cmd = self.card.updateMoneyCmd(new_money)
+        response = self.ser.sendCmd(cmd)
         #print response
-
-        #更新金额
 
     def save(self,money):
         #需要增加验证
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        print index
-        str=''
+        #print index
         str = '0x'+response[index:index + 8]
-        print str
+        #print str
         old_money = int(str, 16)
-        print old_money
+        #print old_money
         new_money = float(old_money + money*100)/100
-        print new_money
+        #print new_money
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
 
-    #def store(self):
+    def showInfo(self):
+        self.card.showInfo()
 
     def waitCard(self):
         text = ''

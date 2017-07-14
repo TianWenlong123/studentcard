@@ -69,6 +69,20 @@ class Card:
         self.passwd = line[index:index + self.passwd_len]
         return 1
 
+    def showInfo(self):
+
+        print "id : %s\n" %self.id
+        print "begin time : %s\n" % self.begin_time
+        print "end time : %s\n" % self.end_time
+        #需要密码查看详细信息
+        more = input("输入1查看详细信息(需要密码)：\n")
+        if more == 1:
+            password = raw_input("输入密码：\n")
+            if password==self.passwd:
+                print "money : %d\n" %self.money
+            else:
+                print "密码错误"
+
     def writeCmd(self, blockAddr, size, data):
         'construct a write command'
         # |WRTE|BlkA|SZ|TA|FFF--KEY--FF|----DATA------------DATA--------|
