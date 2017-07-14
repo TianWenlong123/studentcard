@@ -1,20 +1,13 @@
 # -*- coding: utf-8 -*-
 from controller import *
+from data_type import MAC_PORT
 
 ctrl = Controller()
-ctrl.waitCard()
 
-ctrl.createNew('NewCardInfo.txt')
-ctrl.register('20170827','20180827')
-ctrl.cancelCard()
-
+def main():
+    ctrl.waitCard()
+    ctrl.createNew('NewCardInfo.txt')
 
 
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    main()

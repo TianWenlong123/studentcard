@@ -102,7 +102,6 @@ void loop() {
         }
 
         if (cmd.substring(0, 4) == "WRTE") {
-            Serial.print("WRTE:\t");
             for (int i = 0; i < size; ++i) {
                 byte hi, lo;
                 hi = cmd[pos] >= 'A' ? cmd[pos] - 'A' + 10 : cmd[pos] - '0';
@@ -113,29 +112,41 @@ void loop() {
             }
             
             if ( ! writeToBlock(blockAddr, trailerBlock, dataBlock, size)) {
-                Serial.print("Close.\t");
+                Serial.print("Close.\n");
                 break; // end of cmd loop
+            } else {
+                Serial.print("OKAYWRTE: ");
             }
         } else if (cmd.substring(0, 4) == "READ") {
-            Serial.print("READ:\t");
             size = sizeof(buffer);
-            readFromBlock(blockAddr, trailerBlock, buffer, size);
+            if ( ! readFromBlock(blockAddr, trailerBlock, buffer, size)) {
+                Serial.print("CLSE.\n");
+                break;
+            } else {
+                Serial.print("OKAYREAD: ");
+                dump_byte_array(buffer, size);
+            }
         } else if (cmd.substring(0, 4) == "CLSE") {
-            Serial.print("Close.\t");
+            Serial.print("CLSE\n");
             break; // end of cmd loop
+        } else {
+            Serial.print("CLSE. Wrong command.\n");
+            break;
         }
 
-        Serial.print(sector, DEC);
-        Serial.print("\t");
-        Serial.print(blockAddr, DEC);
-        Serial.print("\t");
-        Serial.print(size, DEC);
-        Serial.print("\t");
-        Serial.print(trailerBlock, DEC);
-        Serial.print("\t");
-        dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
-        Serial.print("\ndata:\t");
-        dump_byte_array(dataBlock, 16);
+        if (cmd.substring(0, 4) == "WRTE") {
+            Serial.print(sector, DEC);
+            Serial.print(" ");
+            Serial.print(blockAddr, DEC);
+            Serial.print(" ");
+            Serial.print(size, DEC);
+            Serial.print(" ");
+            Serial.print(trailerBlock, DEC);
+            Serial.print(" ");
+            dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
+            Serial.print(" data: ");
+            dump_byte_array(dataBlock, 16);   
+        }
         Serial.println();
     }
     
@@ -165,8 +176,6 @@ int writeToBlock(byte blockAddr, byte trailerBlock, byte dataBlock[], byte size)
         Serial.print(F("FAIL: MIFARE_Write() failed: "));
         Serial.println(mfrc522.GetStatusCodeName(status));
         return 0;
-    } else {
-        Serial.print("OKAY");
     }
     // dump_byte_array(dataBlock, 16); Serial.println();
     // Serial.println();
@@ -193,8 +202,6 @@ int readFromBlock(byte blockAddr, byte trailerBlock, byte buffer[], byte size)
         Serial.print(F("FAIL: MIFARE_Read() failed: "));
         Serial.println(mfrc522.GetStatusCodeName(status));
         return 0;
-    } else {
-        Serial.print("OKAY");
     }
     return 1;
 }
