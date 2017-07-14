@@ -123,7 +123,7 @@ void loop() {
                 Serial.print("CLSE.\n");
                 break;
             } else {
-                Serial.print("OKAYREAD: ");
+                Serial.print("OKAYREAD:");
                 dump_byte_array(buffer, size);
             }
         } else if (cmd.substring(0, 4) == "CLSE") {
@@ -212,7 +212,7 @@ int readFromBlock(byte blockAddr, byte trailerBlock, byte buffer[], byte size)
  */
 void dump_byte_array(byte *buffer, byte bufferSize) {
     for (byte i = 0; i < bufferSize; i++) {
-        Serial.print(buffer[i] < 0x10 ? " 0" : " ");
+        Serial.print(buffer[i] < 0x10 ? "0" : "");
         Serial.print(buffer[i], HEX);
     }
 }

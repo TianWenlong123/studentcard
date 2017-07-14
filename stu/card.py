@@ -128,8 +128,9 @@ class Card:
 
     def updateMoneyCmd(self, money):
         'money min value is 1 cent, so multiply by 100 to convert to int operation'
-        cent = int(round(money, 2) * 100)
-        data = ('%08x' % cent) + '00' * (BLOCK_SIZE - 4)
+        self.money = money
+        cent = int(round(self.money, 2) * 100)
+        data = ('%08X' % cent) + '00' * (BLOCK_SIZE - 4)
         return self.writeCmd(MONEY_BLOCK, BLOCK_SIZE, data)
 
     def newCardInitCommands(self):
