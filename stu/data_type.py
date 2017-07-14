@@ -79,7 +79,6 @@ class NewCard:
         response = ser.send_cmd(cmd)
         print response
         #写passwd
-        response = ser.send_cmd(self.passwd)
         cmd = 'WRTE' + '0044' + '16' + 'FFFFFFFFFFFF' + self.passwd.encode('utf8').encode('hex')
         cmd = ser.fillcmd(cmd)
         response = ser.send_cmd(cmd)

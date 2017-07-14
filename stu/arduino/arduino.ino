@@ -1,8 +1,8 @@
 /*
  * CMD format: total length is 54 chars
- * | 4  | 2| 2| 2| 2| KEY        | Data 
- *  WRTE SN BA SZ TA FFFFFFFFFFFF 0123456789012345 * 2
- *  READ SN BA SZ TA FFFFFFFFFFFF
+ * | 4  |  4 | 2| 2| KEY        | Data 
+ *  WRTE   BA SZ TA FFFFFFFFFFFF 0123456789012345 * 2
+ *  READ   BA SZ TA FFFFFFFFFFFF
  *  CLSE
  */
  
@@ -34,7 +34,7 @@ void setup() {
 
     // Serial.println(F("Scan a MIFARE Classic PICC"));
     // Serial.print(F("Using key (for A and B):"));
-    dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
+    // dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
     // Serial.println();
 }
 
@@ -86,7 +86,8 @@ void loop() {
         if (cmd.length() < 4)
             continue;
         
-        blockAddr    = cmd.substring(4, 8).toInt(); // sector  = blockAddr / 4;
+        blockAddr    = cmd.substring(4, 8).toInt();
+        sector       = blockAddr / 4;
         size         = cmd.substring(8, 10).toInt();
         trailerBlock = cmd.substring(10, 12).toInt();
         byte pos = 12;
@@ -97,7 +98,7 @@ void loop() {
             pos++;
             lo = cmd[pos] >= 'A' ? cmd[pos] - 'A' + 10 : cmd[pos] - '0';
             pos++;
-            key.keyByte[i] = hi * 16 + lo;
+            key.keyByte[i] = hi * 16 + lo; // key is global
         }
 
         if (cmd.substring(0, 4) == "WRTE") {
@@ -110,12 +111,18 @@ void loop() {
                 pos++;
                 dataBlock[i] = hi * 16 + lo;
             }
+            
+            if ( ! writeToBlock(blockAddr, trailerBlock, dataBlock, size)) {
+                Serial.print("Close.\t");
+                break; // end of cmd loop
+            }
         } else if (cmd.substring(0, 4) == "READ") {
             Serial.print("READ:\t");
+            size = sizeof(buffer);
+            readFromBlock(blockAddr, trailerBlock, buffer, size);
         } else if (cmd.substring(0, 4) == "CLSE") {
             Serial.print("Close.\t");
-            // end of cmd loop
-            break;
+            break; // end of cmd loop
         }
 
         Serial.print(sector, DEC);
@@ -139,32 +146,55 @@ void loop() {
 }
 
 
-int writeToBlock(byte sector, byte blockAddr, byte dataBlock[])
+int writeToBlock(byte blockAddr, byte trailerBlock, byte dataBlock[], byte size)
 {
     MFRC522::StatusCode status;
-    status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(blockAddr, dataBlock, 16);
+    // Authenticate using key A or B
+    status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerBlock, &key, &(mfrc522.uid));
     if (status != MFRC522::STATUS_OK) {
-        Serial.print(F("MIFARE_Write() failed: "));
-        Serial.println(mfrc522.GetStatusCodeName(status));
-        Serial.print(F("Please check and try again."));
-        return 0;
+        status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, trailerBlock, &key, &(mfrc522.uid));
+        if (status != MFRC522::STATUS_OK) {
+            Serial.print(F("FAIL: PCD_Authenticate() failed: "));
+            Serial.println(mfrc522.GetStatusCodeName(status));
+            return 0;
+        }
     }
-    dump_byte_array(dataBlock, 16); Serial.println();
-    Serial.println();
+    
+    status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(blockAddr, dataBlock, size);
+    if (status != MFRC522::STATUS_OK) {
+        Serial.print(F("FAIL: MIFARE_Write() failed: "));
+        Serial.println(mfrc522.GetStatusCodeName(status));
+        return 0;
+    } else {
+        Serial.print("OKAY");
+    }
+    // dump_byte_array(dataBlock, 16); Serial.println();
+    // Serial.println();
     return 1;
 }
 
-int readFromBlock(byte sector, byte blockAddr, byte duffer[], byte size)
+int readFromBlock(byte blockAddr, byte trailerBlock, byte buffer[], byte size)
 {
-    Serial.print(F("Reading data from block ")); Serial.print(blockAddr);
-    Serial.println(F(" ..."));
     MFRC522::StatusCode status;
-    byte buffer[18];
+    // Authenticate using key A or B
+    status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerBlock, &key, &(mfrc522.uid));
+    if (status != MFRC522::STATUS_OK) {
+        status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, trailerBlock, &key, &(mfrc522.uid));
+        if (status != MFRC522::STATUS_OK) {
+            Serial.print(F("FAIL: PCD_Authenticate() failed: "));
+            Serial.println(mfrc522.GetStatusCodeName(status));
+            return 0;
+        }
+    }
+
+    // Read block from sector-blockAddr
     status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(blockAddr, buffer, &size);
     if (status != MFRC522::STATUS_OK) {
-        Serial.print(F("MIFARE_Read() failed: "));
+        Serial.print(F("FAIL: MIFARE_Read() failed: "));
         Serial.println(mfrc522.GetStatusCodeName(status));
         return 0;
+    } else {
+        Serial.print("OKAY");
     }
     return 1;
 }
