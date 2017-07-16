@@ -9,8 +9,10 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
-constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
+constexpr uint8_t RST_PIN  = 9;      // Configurable, see typical pin layout above
+constexpr uint8_t SS_PIN   = 10;     // Configurable, see typical pin layout above
+constexpr uint8_t ID_BLOCK = 4;      // id block
+constexpr uint8_t ID_TRAILER_BLOCK = 7;
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
@@ -48,12 +50,12 @@ void loop() {
         return;
     
     // Show some details of the PICC (that is: the tag/card)
-    Serial.print(F("Card UID:"));
-    dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-    Serial.println();
-    Serial.print(F("PICC type: "));
-    MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-    Serial.println(mfrc522.PICC_GetTypeName(piccType));
+    // Serial.print(F("Card UID:"));
+    // dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+    // Serial.println();
+    // Serial.print(F("PICC type: "));
+    // MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    // Serial.println(mfrc522.PICC_GetTypeName(piccType));
 
     // Check for compatibility
     if ( piccType != MFRC522::PICC_TYPE_MIFARE_1K ) {
@@ -61,7 +63,6 @@ void loop() {
         return;
     }
 
-    byte sector         = 0;
     byte blockAddr      = 0;
     byte size           = 0;
     byte trailerBlock   = 0;
@@ -72,9 +73,15 @@ void loop() {
         0x00, 0x00, 0x00, 0x00,
         0x00, 0x00
     };
+
     byte buffer[18];
     MFRC522::StatusCode status;
+
+    readFromBlock(ID_BLOCK, ID_TRAILER_BLOCK, buffer, sizeof(buffer));
     
+    Serial.print("REQU");
+    dump_byte_array(buffer, 16);
+
     // Read command from Serial
     cmd = "";
     while (1) {
