@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 from controller import *
 from data_type import MAC_PORT
+import platform
 
-ctrl = Controller()
+portname = 'COM3'
+if not 'windows' in platform.platform().lower():
+    portname = MAC_PORT
+ctrl = Controller(portname=portname)
 
 def main():
     while 1:
@@ -15,8 +19,8 @@ def main():
         print "6 : 查看信息\n"
         print "7 : 退出\n"
         print "\n"
-        #choice = input("Please input your chioce:\n")
-        choice = 5
+        choice = input("Please input your chioce:\n")
+        # choice = 5
         if choice==1:
             a = raw_input("fill in the file(NewCardInfo.txt) with student's information and input ok :\n")
             ctrl.createNew('NewCardInfo.txt')

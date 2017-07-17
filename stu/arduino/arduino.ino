@@ -50,11 +50,11 @@ void loop() {
         return;
     
     // Show some details of the PICC (that is: the tag/card)
-    // Serial.print(F("Card UID:"));
-    // dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-    // Serial.println();
+     Serial.print(F("CARD UID:"));
+     dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+     Serial.println();
     // Serial.print(F("PICC type: "));
-    // MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
     // Serial.println(mfrc522.PICC_GetTypeName(piccType));
 
     // Check for compatibility
@@ -77,11 +77,6 @@ void loop() {
     byte buffer[18];
     MFRC522::StatusCode status;
 
-    readFromBlock(ID_BLOCK, ID_TRAILER_BLOCK, buffer, sizeof(buffer));
-    
-    Serial.print("REQU");
-    dump_byte_array(buffer, 16);
-
     // Read command from Serial
     cmd = "";
     while (1) {
@@ -94,7 +89,6 @@ void loop() {
             continue;
         
         blockAddr    = cmd.substring(4, 8).toInt();
-        sector       = blockAddr / 4;
         size         = cmd.substring(8, 10).toInt();
         trailerBlock = cmd.substring(10, 12).toInt();
         byte pos = 12;
@@ -142,8 +136,6 @@ void loop() {
         }
 
         if (cmd.substring(0, 4) == "WRTE") {
-            Serial.print(sector, DEC);
-            Serial.print(" ");
             Serial.print(blockAddr, DEC);
             Serial.print(" ");
             Serial.print(size, DEC);
