@@ -3,8 +3,12 @@ from card import Card
 from myserial import MySerial, MAC_PORT
 
 class Controller:
-    def __init__(self, portname=None):
+    def __init__(self,position,posnum, portname=None):
         #初始化
+
+        self.position = position
+        self.posnum =posnum
+
         if portname == None:
             self.ser = MySerial()
         else:
@@ -36,18 +40,46 @@ class Controller:
 
     #def accesscrl(self):
 
+    def changeRecord(self,consume_type,money):
+        #修改头指针
+        cmd = self.card.readConsumeHeadCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        str = '0x' + response[index:index+8]
+        old_head = int(str, 16)
+        new_head = old_head + 1
+        if new_head > 5:
+            new_head = new_head-5
+        cmd = self.card.updateConsumeHeadCmd(new_head)
+        respnose = self.ser.sendCmd(cmd)
+        #修改数量
+        cmd = self.card.readConsumeNumCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        str = '0x' + response[index:index+8]
+        num = int(str,16)
+        if num < 5:
+            num = num + 1
+            cmd = self.card.updateConsumeNumCmd(num)
+            response = self.ser.sendCmd(cmd)
+        #修改记录
+        cmds = self.card.updateRecordCmd(new_head,self.position,self.posnum,consume_type,money)
+        self.sendCmd(cmds)
+
     def consume(self,money):
         #读取金额
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        print index
+        #print index
         str = '0x' + response[index:index + 8]
         old_money = int(str, 16)
         new_money = float(old_money - money * 100) / 100
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
         #print response
+        #修改记录
+        self.changeRecord(1,money)
 
     def save(self,money):
         #需要增加验证
@@ -63,6 +95,9 @@ class Controller:
         #print new_money
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
+
+        #修改记录
+        self.changeRecord(2, money)
 
     def showInfo(self):
         self.card.showInfo()

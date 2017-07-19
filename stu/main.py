@@ -2,7 +2,7 @@
 from controller import *
 from data_type import MAC_PORT
 
-ctrl = Controller()
+ctrl = Controller('饮食中心',1)
 
 def main():
     while 1:
@@ -16,7 +16,7 @@ def main():
         print "7 : 退出\n"
         print "\n"
         #choice = input("Please input your chioce:\n")
-        choice = 5
+        choice = 6
         if choice==1:
             a = raw_input("fill in the file(NewCardInfo.txt) with student's information and input ok :\n")
             ctrl.createNew('NewCardInfo.txt')
@@ -46,4 +46,5 @@ def main():
             break
 
 if __name__ == '__main__':
+
     main()

@@ -54,8 +54,8 @@ void loop() {
     // dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
     // Serial.println();
     // Serial.print(F("PICC type: "));
-    // MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-    // Serial.println(mfrc522.PICC_GetTypeName(piccType));
+    MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    //Serial.println(mfrc522.PICC_GetTypeName(piccType));
 
     // Check for compatibility
     if ( piccType != MFRC522::PICC_TYPE_MIFARE_1K ) {
@@ -94,7 +94,7 @@ void loop() {
             continue;
         
         blockAddr    = cmd.substring(4, 8).toInt();
-        sector       = blockAddr / 4;
+        //sector       = blockAddr / 4;
         size         = cmd.substring(8, 10).toInt();
         trailerBlock = cmd.substring(10, 12).toInt();
         byte pos = 12;
@@ -142,7 +142,7 @@ void loop() {
         }
 
         if (cmd.substring(0, 4) == "WRTE") {
-            Serial.print(sector, DEC);
+            //Serial.print(sector, DEC);
             Serial.print(" ");
             Serial.print(blockAddr, DEC);
             Serial.print(" ");
