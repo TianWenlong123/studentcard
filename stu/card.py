@@ -39,6 +39,7 @@ class Card:
         self.end_time      = '20180827'
         self.time_len      = 8
         self.money         = 0 # cent
+        self.money_bak     = 0
         self.consume_head  = 0
         self.consume_num   = 0
         self.consume_queue = Queue.Queue(maxsize = 5)
@@ -140,12 +141,22 @@ class Card:
     def readMoneyCmd(self):
         return self.readCmd(MONEY_BLOCK, BLOCK_SIZE)
 
+    def readMoneyCmdBak(self):
+        return self.readCmd(MONEY_BLOCK_BAK, BLOCK_SIZE)
+    
     def updateMoneyCmd(self, money):
         'money min value is 1 cent, so multiply by 100 to convert to int operation'
         self.money = money
         cent = int(round(self.money, 2) * 100)
         data = ('%08X' % cent) + '00' * (BLOCK_SIZE - 4)
         return self.writeCmd(MONEY_BLOCK, BLOCK_SIZE, data)
+    
+    def updateMoneyCmdBak(self, money):
+        'money min value is 1 cent, so multiply by 100 to convert to int operation'
+        self.money_bak = money
+        cent = int(round(self.money_bak, 2) * 100)
+        data = ('%08X' % cent) + '00' * (BLOCK_SIZE - 4)
+        return self.writeCmd(MONEY_BLOCK_BAK, BLOCK_SIZE, data)
 
     def newCardInitCommands(self):
         cmds = []
@@ -166,6 +177,9 @@ class Card:
         cmd = self.updateMoneyCmd(0.0)
         cmds.append(cmd)
 
+        cmd = self.updateMoneyCmdBak(0.0)
+        cmds.append(cmd)
+        
         return cmds
 
     def updateTimeCommands(self,begint,endt):
