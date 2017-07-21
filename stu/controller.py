@@ -3,8 +3,13 @@ from card import Card
 from myserial import MySerial, MAC_PORT
 
 class Controller:
-    def __init__(self, portname=None):
+    def __init__(self,position,posnum, portname=None):
         #初始化
+
+        self.position = position
+        self.posnum =posnum
+        self.portname=portname
+
         if portname == None:
             self.ser = MySerial()
         else:
@@ -19,6 +24,16 @@ class Controller:
         if(self.card.getInfo(filename)):
             cmds = self.card.newCardInitCommands()
             self.sendCmd(cmds)
+            
+    def setInvalid(self):
+        cmd = self.card.updateValidCmd('nvalid')
+        response = self.ser.sendCmd(cmd)
+        
+        cmd = self.card.updateMoneyCmd(0.0)
+        response = self.ser.sendCmd(cmd)
+        
+        cmd = self.card.updateMoneyCmdBak(0.0)
+        response = self.ser.sendCmd(cmd)
 
     def sendCmd(self, cmds):
         for cmd in cmds:
@@ -36,8 +51,45 @@ class Controller:
 
     #def accesscrl(self):
 
+    def changeRecord(self,consume_type,money):
+        #修改头指针
+        cmd = self.card.readConsumeHeadCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        str = '0x' + response[index:index+8]
+        old_head = int(str, 16)
+        new_head = old_head + 1
+        print new_head
+        if new_head > 5:
+            new_head = new_head-5
+        cmd = self.card.updateConsumeHeadCmd(new_head)
+        respnose = self.ser.sendCmd(cmd)
+        #修改数量
+        cmd = self.card.readConsumeNumCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        str = '0x' + response[index:index+8]
+        num = int(str,16)
+        print num
+        if num < 5:
+            num = num + 1
+            cmd = self.card.updateConsumeNumCmd(num)
+            response = self.ser.sendCmd(cmd)
+        #修改记录
+        cmds = self.card.updateRecordCmd(new_head,self.position,self.posnum,consume_type,money)
+        self.sendCmd(cmds)
+
     def consume(self,money):
         #读取金额
+        cmd = self.card.readValidCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        print index
+        str = '0x' + response[index:index + 12]
+        valid = str.decode('hex')
+        if valid != 'yvalid':
+            print 'InValid!'
+            return
         
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
@@ -45,31 +97,54 @@ class Controller:
         print index
         str = '0x' + response[index:index + 8]
         old_money = int(str, 16)
-        
+
         cmd_bak = self.card.readMoneyCmdBak()
         response = self.ser.sendCmd(cmd_bak)
         index = response.index(':')+1
         print index
         str = '0x' + response[index:index + 8]
         old_money_bak = int(str, 16)
-        
-        if old_money == old_money_bak :
-            new_money = float(old_money - money * 100) / 100
-            cmd = self.card.updateMoneyCmd(new_money)
-            response = self.ser.sendCmd(cmd)
-            
-            cmd_bak = self.card.updateMoneyCmdBak(new_money)
-            response = self.ser.sendCmd(cmd_bak)
-        else:
+
+        if old_money != old_money_bak:
             print 'Money Error!'
-        #print response
+            return
+
+        varify = 1
+        if money >= 50:
+            varify = self.card.varify()
+        if varify == 1:
+            new_money = float(old_money - money * 100) / 100
+            if new_money >= 0:
+                cmd = self.card.updateMoneyCmd(new_money)
+                response = self.ser.sendCmd(cmd)
+                print response
+                cmd_bak = self.card.updateMoneyCmdBak(new_money)
+                response = self.ser.sendCmd(cmd_bak)
+                # 修改记录
+                self.changeRecord(1, money)
+            else:
+                print "金额不足"
+                return
+        else:
+            print "密码错误"
+            return
 
     def save(self,money):
         #需要增加验证
+        cmd = self.card.readValidCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        print index
+        str = '0x' + response[index:index + 12]
+        valid = str.decode('hex')
+        if valid != 'yvalid':
+            print 'InValid!'
+            return
+        
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        #print index
+        print index
         str = '0x'+response[index:index + 8]
         #print str
         old_money = int(str, 16)
@@ -81,16 +156,19 @@ class Controller:
         str = '0x' + response[index:index + 8]
         old_money_bak = int(str, 16)
         
-        if old_money == old_money_bak :
-        #print old_money
-            new_money = float(old_money + money*100)/100
-        #print new_money
-            cmd = self.card.updateMoneyCmd(new_money)
-            response = self.ser.sendCmd(cmd)
-            cmd_bak = self.card.updateMoneyCmdBak(new_money)
-            response = self.ser.sendCmd(cmd_bak)
-        else:
-            print 'Money Error!' 
+        if old_money != old_money_bak :
+            print 'Money Error!'
+            return
+
+        new_money = float(old_money + money*100)/100
+        print new_money
+        cmd = self.card.updateMoneyCmd(new_money)
+        response = self.ser.sendCmd(cmd)
+        cmd_bak = self.card.updateMoneyCmdBak(new_money)
+        response = self.ser.sendCmd(cmd_bak)
+
+        #修改记录
+        self.changeRecord(2, money)
 
     def showInfo(self):
         self.card.showInfo()
