@@ -29,7 +29,7 @@ class Controller:
         for cmd in cmds:
             # print cmd
             response = self.ser.sendCmd(cmd)
-            if not response or len(response) < 4 or response[0:4] != 'OKAY':
+            if not response or len(response) < 4 or (response[0:4] != 'OKAY' and response[0:4] != 'CLSE'):
                 print 'Error!', response
                 # return False
             else:
