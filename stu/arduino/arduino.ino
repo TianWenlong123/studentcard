@@ -55,6 +55,7 @@ void loop() {
      Serial.println();
     // Serial.print(F("PICC type: "));
     MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+
     // Serial.println(mfrc522.PICC_GetTypeName(piccType));
 
     // Check for compatibility

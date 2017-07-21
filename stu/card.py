@@ -14,6 +14,7 @@
 # 
 
 import Queue
+import datetime
 
 BLOCK_SIZE = 16
 
@@ -25,7 +26,11 @@ BEGIN_TIME_BLOCK  = 5
 END_TIME_BLOCK    = 6
 MONEY_BLOCK       = 8
 MONEY_BLOCK_BAK   = 12
-RECORD_INFO_BLOCK = 16
+RECORD_INFO_HEAD_BLOCK = 16
+RECORD_INFO_NUM_BLOCK = 17
+RECORD_POS_SECTOR = 4
+
+
 VALID_BLOCK       = 40
 PASSWD_BLOCK      = 44
 
@@ -69,19 +74,19 @@ class Card:
         self.passwd = line[index:index + self.passwd_len]
         return 1
 
-    def showInfo(self):
-
-        print "id : %s\n" %self.id
-        print "begin time : %s\n" % self.begin_time
-        print "end time : %s\n" % self.end_time
-        #需要密码查看详细信息
-        more = input("输入1查看详细信息(需要密码)：\n")
-        if more == 1:
-            password = raw_input("输入密码：\n")
-            if password==self.passwd:
-                print "money : %d\n" %self.money
-            else:
-                print "密码错误"
+    #def showInfo(self):
+        #读取校园卡ID并查找数据库
+        # print "id : %s\n" %self.id
+        # print "begin time : %s\n" % self.begin_time
+        # print "end time : %s\n" % self.end_time
+        # #需要密码查看详细信息
+        # more = input("输入1查看详细信息(需要密码)：\n")
+        # if more == 1:
+        #     password = raw_input("输入密码：\n")
+        #     if password==self.passwd:
+        #         print "money : %d\n" %self.money
+        #     else:
+        #         print "密码错误"
 
     def writeCmd(self, blockAddr, size, data):
         'construct a write command'
@@ -147,6 +152,40 @@ class Card:
         data = ('%08X' % cent) + '00' * (BLOCK_SIZE - 4)
         return self.writeCmd(MONEY_BLOCK, BLOCK_SIZE, data)
 
+    def readConsumeHeadCmd(self):
+        return self.readCmd(RECORD_INFO_HEAD_BLOCK,BLOCK_SIZE)
+
+    def updateConsumeHeadCmd(self,head=None):
+        if head != None:
+            self.consume_head = head
+        data = ('%08X' % self.consume_head) + '00' *  (BLOCK_SIZE - 4)
+        return self.writeCmd(RECORD_INFO_HEAD_BLOCK,BLOCK_SIZE,data)
+
+    def readConsumeNumCmd(self):
+        return self.readCmd(RECORD_INFO_NUM_BLOCK,BLOCK_SIZE)
+
+    def updateConsumeNumCmd(self,num=None):
+        if num != None:
+            self.consume_num = num
+        data = ('%08X' % self.consume_num) + '00' *  (BLOCK_SIZE - 4)
+        return self.writeCmd(RECORD_INFO_NUM_BLOCK,BLOCK_SIZE,data)
+
+    def updateRecordCmd(self,head,position,posnum,consume_type,money):
+        BLOCK = 4*(RECORD_POS_SECTOR+head)
+        cmds=[]
+        data = position.encode('hex')
+        while len(data) < 32:
+            data += '0'
+        cmds.append( self.writeCmd(BLOCK, BLOCK_SIZE, data) )
+
+        now_time = datetime.datetime.now()
+        year = now_time.year
+        month = now_time.month
+        day = now_time.day
+        data = '%08x%04x%04x%02x%08x%04x%02s' % (year, month, day, consume_type, money, posnum, '0' * 2)
+        cmds.append(self.writeCmd(BLOCK+1, BLOCK_SIZE, data))
+        return cmds
+
     def newCardInitCommands(self):
         cmds = []
         # write student id number
@@ -163,7 +202,15 @@ class Card:
         cmd = self.updatePasswdCmd('011423')
         cmds.append(cmd)
 
+        # write money
         cmd = self.updateMoneyCmd(0.0)
+        cmds.append(cmd)
+
+        # write record
+        cmd = self.updateConsumeHeadCmd(0)
+        cmds.append(cmd)
+
+        cmd = self.updateConsumeNumCmd(0)
         cmds.append(cmd)
 
         return cmds
@@ -177,3 +224,12 @@ class Card:
         cmds.append(cmd)
 
         return cmds
+
+    def varify(self):
+        password = raw_input("输入密码：\n")
+        if password==self.passwd:
+            #print "money : %d\n" %self.money
+            return 1
+        else:
+            return 0
+            #print "密码错误"

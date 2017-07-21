@@ -6,11 +6,11 @@ import platform
 portname = 'COM3'
 if not 'windows' in platform.platform().lower():
     portname = MAC_PORT
-ctrl = Controller(portname=portname)
+ctrl = Controller('饮食中心',1,portname=portname)
 
 def main():
+    ctrl.waitCard()
     while 1:
-        ctrl.waitCard()
         print "1 : 制作新卡\n"
         print "2 : 注销旧卡\n"
         print "3 : 学生注册\n"
@@ -20,7 +20,7 @@ def main():
         print "7 : 退出\n"
         print "\n"
         choice = input("Please input your chioce:\n")
-        # choice = 5
+
         if choice==1:
             a = raw_input("fill in the file(NewCardInfo.txt) with student's information and input ok :\n")
             ctrl.createNew('NewCardInfo.txt')
@@ -50,4 +50,5 @@ def main():
             break
 
 if __name__ == '__main__':
+
     main()
