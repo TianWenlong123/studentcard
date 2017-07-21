@@ -27,6 +27,7 @@ def main():
 
         if choice==2:
             a=1
+            ctrl.setInvalid()
 
         if choice==3:
             begin_time = raw_input("Please input begin time\n")
