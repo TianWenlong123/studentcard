@@ -50,7 +50,8 @@ class Card:
         self.consume_queue = Queue.Queue(maxsize = 5)
         self.passwd        = "******"
         self.passwd_len    = 6
-
+        self.valid         = "nvalid"
+        
     def getInfo(self, filename):
         file = open(filename)
         #考虑增加验证
@@ -145,6 +146,17 @@ class Card:
         assert len(data) == 12
         data += '0' * (BLOCK_SIZE * 2 - 12)
         return self.writeCmd(PASSWD_BLOCK, BLOCK_SIZE, data)
+    
+    def readValidCmd(self):
+        return self.readCmd(VALID_BLOCK, BLOCK_SIZE)
+    
+    def updateValidCmd(self,valid):
+        if valid != None:
+            self.valid = valid
+        data = self.valid.encode('hex')
+        assert len(data) == 12
+        data += '0' * (BLOCK_SIZE * 2 - 12)
+        return self.writeCmd(VALID_BLOCK, BLOCK_SIZE, data)          
 
     def readMoneyCmd(self):
         return self.readCmd(MONEY_BLOCK, BLOCK_SIZE)
@@ -230,6 +242,9 @@ class Card:
         cmd = self.updateConsumeNumCmd(0)
         cmds.append(cmd)
         
+        cmd = self.updateValidCmd('yvalid')
+        cmds.append(cmd)
+
         cmd = self.closeCmd()
         cmds.append(cmd)
 

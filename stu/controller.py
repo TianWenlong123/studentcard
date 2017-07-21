@@ -24,6 +24,16 @@ class Controller:
         if(self.card.getInfo(filename)):
             cmds = self.card.newCardInitCommands()
             self.sendCmd(cmds)
+            
+    def setInvalid(self):
+        cmd = self.card.updateValidCmd('nvalid')
+        response = self.ser.sendCmd(cmd)
+        
+        cmd = self.card.updateMoneyCmd(0.0)
+        response = self.ser.sendCmd(cmd)
+        
+        cmd = self.card.updateMoneyCmdBak(0.0)
+        response = self.ser.sendCmd(cmd)
 
     def sendCmd(self, cmds):
         for cmd in cmds:
@@ -71,6 +81,15 @@ class Controller:
 
     def consume(self,money):
         #读取金额
+        cmd = self.card.readValidCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        print index
+        str = '0x' + response[index:index + 12]
+        valid = str.decode('hex')
+        if valid != 'yvalid':
+            print 'InValid!'
+            return
         
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
@@ -112,6 +131,16 @@ class Controller:
 
     def save(self,money):
         #需要增加验证
+        cmd = self.card.readValidCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        print index
+        str = '0x' + response[index:index + 12]
+        valid = str.decode('hex')
+        if valid != 'yvalid':
+            print 'InValid!'
+            return
+        
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
