@@ -57,6 +57,9 @@ class Controller:
             new_money = float(old_money - money * 100) / 100
             cmd = self.card.updateMoneyCmd(new_money)
             response = self.ser.sendCmd(cmd)
+            
+            cmd_bak = self.card.updateMoneyCmdBak(new_money)
+            response = self.ser.sendCmd(cmd_bak)
         else:
             print 'Money Error!'
         #print response
@@ -84,6 +87,8 @@ class Controller:
         #print new_money
             cmd = self.card.updateMoneyCmd(new_money)
             response = self.ser.sendCmd(cmd)
+            cmd_bak = self.card.updateMoneyCmdBak(new_money)
+            response = self.ser.sendCmd(cmd_bak)
         else:
             print 'Money Error!' 
 
