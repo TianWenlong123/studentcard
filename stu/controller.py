@@ -71,21 +71,36 @@ class Controller:
 
     def consume(self,money):
         #读取金额
+        
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
         print index
         str = '0x' + response[index:index + 8]
+        old_money = int(str, 16)
+
+        cmd_bak = self.card.readMoneyCmdBak()
+        response = self.ser.sendCmd(cmd_bak)
+        index = response.index(':')+1
+        print index
+        str = '0x' + response[index:index + 8]
+        old_money_bak = int(str, 16)
+
+        if old_money != old_money_bak:
+            print 'Money Error!'
+            return
+
         varify = 1
         if money >= 50:
             varify = self.card.varify()
         if varify == 1:
-            old_money = int(str, 16)
             new_money = float(old_money - money * 100) / 100
             if new_money >= 0:
                 cmd = self.card.updateMoneyCmd(new_money)
                 response = self.ser.sendCmd(cmd)
                 print response
+                cmd_bak = self.card.updateMoneyCmdBak(new_money)
+                response = self.ser.sendCmd(cmd_bak)
                 # 修改记录
                 self.changeRecord(1, money)
             else:
@@ -104,11 +119,24 @@ class Controller:
         str = '0x'+response[index:index + 8]
         #print str
         old_money = int(str, 16)
-        #print old_money
+        
+        cmd_bak = self.card.readMoneyCmdBak()
+        response = self.ser.sendCmd(cmd_bak)
+        index = response.index(':')+1
+        print index
+        str = '0x' + response[index:index + 8]
+        old_money_bak = int(str, 16)
+        
+        if old_money != old_money_bak :
+            print 'Money Error!'
+            return
+
         new_money = float(old_money + money*100)/100
         print new_money
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
+        cmd_bak = self.card.updateMoneyCmdBak(new_money)
+        response = self.ser.sendCmd(cmd_bak)
 
         #修改记录
         self.changeRecord(2, money)
