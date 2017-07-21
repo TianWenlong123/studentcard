@@ -174,7 +174,8 @@ class Card:
         BLOCK = 4*(RECORD_POS_SECTOR+head)
         cmds=[]
         data = position.encode('hex')
-        data += '0' * (BLOCK_SIZE * 2 - 12)
+        while len(data) < 32:
+            data += '0'
         cmds.append( self.writeCmd(BLOCK, BLOCK_SIZE, data) )
 
         now_time = datetime.datetime.now()
@@ -206,11 +207,11 @@ class Card:
         cmds.append(cmd)
 
         # write record
-        #cmd = self.updateRecordHeadCmd()
-        #cmds.append(cmd)
+        cmd = self.updateConsumeHeadCmd(0)
+        cmds.append(cmd)
 
-       # cmd = self.updateRecordNumCmd()
-        #cmds.append(cmd)
+        cmd = self.updateConsumeNumCmd(0)
+        cmds.append(cmd)
 
         return cmds
 
@@ -224,3 +225,11 @@ class Card:
 
         return cmds
 
+    def varify(self):
+        password = raw_input("输入密码：\n")
+        if password==self.passwd:
+            #print "money : %d\n" %self.money
+            return 1
+        else:
+            return 0
+            #print "密码错误"

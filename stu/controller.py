@@ -8,6 +8,7 @@ class Controller:
 
         self.position = position
         self.posnum =posnum
+        self.portname=portname
 
         if portname == None:
             self.ser = MySerial()
@@ -48,6 +49,7 @@ class Controller:
         str = '0x' + response[index:index+8]
         old_head = int(str, 16)
         new_head = old_head + 1
+        print new_head
         if new_head > 5:
             new_head = new_head-5
         cmd = self.card.updateConsumeHeadCmd(new_head)
@@ -58,6 +60,7 @@ class Controller:
         index = response.index(':')+1
         str = '0x' + response[index:index+8]
         num = int(str,16)
+        print num
         if num < 5:
             num = num + 1
             cmd = self.card.updateConsumeNumCmd(num)
@@ -71,28 +74,39 @@ class Controller:
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        #print index
+        print index
         str = '0x' + response[index:index + 8]
-        old_money = int(str, 16)
-        new_money = float(old_money - money * 100) / 100
-        cmd = self.card.updateMoneyCmd(new_money)
-        response = self.ser.sendCmd(cmd)
-        #print response
-        #修改记录
-        self.changeRecord(1,money)
+        varify = 1
+        if money >= 50:
+            varify = self.card.varify()
+        if varify == 1:
+            old_money = int(str, 16)
+            new_money = float(old_money - money * 100) / 100
+            if new_money >= 0:
+                cmd = self.card.updateMoneyCmd(new_money)
+                response = self.ser.sendCmd(cmd)
+                print response
+                # 修改记录
+                self.changeRecord(1, money)
+            else:
+                print "金额不足"
+                return
+        else:
+            print "密码错误"
+            return
 
     def save(self,money):
         #需要增加验证
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        #print index
+        print index
         str = '0x'+response[index:index + 8]
         #print str
         old_money = int(str, 16)
         #print old_money
         new_money = float(old_money + money*100)/100
-        #print new_money
+        print new_money
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
 

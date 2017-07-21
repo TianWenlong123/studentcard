@@ -5,8 +5,8 @@ from data_type import MAC_PORT
 ctrl = Controller('饮食中心',1)
 
 def main():
+    ctrl.waitCard()
     while 1:
-        ctrl.waitCard()
         print "1 : 制作新卡\n"
         print "2 : 注销旧卡\n"
         print "3 : 学生注册\n"
@@ -15,8 +15,8 @@ def main():
         print "6 : 查看信息\n"
         print "7 : 退出\n"
         print "\n"
-        #choice = input("Please input your chioce:\n")
-        choice = 6
+        choice = input("Please input your chioce:\n")
+
         if choice==1:
             a = raw_input("fill in the file(NewCardInfo.txt) with student's information and input ok :\n")
             ctrl.createNew('NewCardInfo.txt')
