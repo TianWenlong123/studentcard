@@ -2,12 +2,12 @@
 
 import sqlite3
 
-conn = sqlite3.connect('allow.db')
+db_allow = sqlite3.connect('allow.db')
 
-c = conn.cursor()
+c_allow = db_allow.cursor()
 
 id = 2014011423
 
-c.execute('SELECT * FROM allow WHERE id=?', (str(id),))
+c_allow.execute('SELECT * FROM allow WHERE id=?', (str(id),))
 
-print c.fetchall()
+print c_allow.fetchall()

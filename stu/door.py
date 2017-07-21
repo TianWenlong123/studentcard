@@ -3,11 +3,9 @@
 import serial
 from myserial import MySerial, MAC_PORT
 import sqlite3
+from db_utils import *
 
 myserial = MySerial(MAC_PORT, timeout=1)
-
-conn = sqlite3.connect('allow.db')
-cursor = conn.cursor()
 
 def main():
     myserial.port.readall()
@@ -22,11 +20,15 @@ def main():
                     print istr
                     id = int(istr, 16)
                     print 'ID:', id, 'request to pass'
-                    response = myserial.sendCmd('PASS')
-                    if response[0:3] == 'LOG':
-                        print 'log:', response[3:]
+                    if query_allow(id):    
+                        print id, 'comes.'
+                        response = myserial.sendCmd('PASS')
+                        if response[0:3] == 'LOG':
+                            print 'log:', response[3:]
+                        else:
+                            print response
                     else:
-                        print response
+                        response = myserial.sendCmd('CLSE')
                 elif cmd[0:4] == 'CLSE':
                     break
                 elif cmd[0:3] == 'LOG':

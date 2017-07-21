@@ -153,6 +153,8 @@ void loop() {
     mfrc522.PICC_HaltA();
     // Stop encryption on PCD
     mfrc522.PCD_StopCrypto1();
+    
+    delay(1000);
 }
 
 

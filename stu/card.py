@@ -96,6 +96,9 @@ class Card:
         cmd = 'READ%04d%02d%02d%s' % (blockAddr, size, blockAddr/4*4+3, keys[blockAddr/4])
         return cmd
 
+    def closeCmd(self):
+        return 'CLSE'
+
     def updateIDCmd(self, id=None):
         if id != None:
             self.id = id
@@ -164,6 +167,9 @@ class Card:
         cmds.append(cmd)
 
         cmd = self.updateMoneyCmd(0.0)
+        cmds.append(cmd)
+
+        cmd = self.closeCmd()
         cmds.append(cmd)
 
         return cmds
