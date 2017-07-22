@@ -6,16 +6,23 @@ import sqlite3
 ALLOW_DB_NAME = 'allow.db'
 STUDENTS_DB_NAME = 'students.db'
 
+ALLOW_TABLE_NAME = 'allow'
+STUDENTS_TABLE_NAME = 'info'
+
+ALLOW_START_ID = 2014011300
+ALLOW_END_ID = 2014011500
+
 def init_allow():    
     db_allow = sqlite3.connect('allow.db')
     c_allow = db_allow.cursor()
 
     # Create table
     c_allow.execute('''CREATE TABLE allow
-                (id int, name text)''')
+                (id int)''')
 
-    # Insert a row of data
-    c_allow.execute("INSERT INTO allow VALUES (2014011423, '陈雅正')")
+    # Insert data
+    for id in range(ALLOW_START_ID, ALLOW_END_ID):
+        c_allow.execute("INSERT INTO allow VALUES (%d)" % id)
 
     # Save (commit) the changes
     db_allow.commit()
@@ -28,7 +35,13 @@ def init_students():
     db_stu = sqlite3.connect('students.db')
     c_stu = db_stu.cursor()
     c_stu.execute('''CREATE TABLE info
-        (id int, name text, sex text, department text, begin_time date, end_time date, money real)
+        (id int,
+        name text,
+        sex text,
+        department text,
+        begin_time date,
+        end_time date,
+        money real)
         ''')
     db_stu.commit()
     db_stu.close()
