@@ -262,7 +262,8 @@ class Card:
 
     def varify(self):
         password = raw_input("输入密码：\n")
-        if password==self.passwd:
+        ppasswd = 0
+        if password==ppasswd:
             #print "money : %d\n" %self.money
             return 1
         else:
