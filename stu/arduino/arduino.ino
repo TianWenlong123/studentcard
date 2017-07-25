@@ -126,7 +126,7 @@ void loop() {
                 break;
             } else {
                 Serial.print("OKAYREAD:");
-                dump_byte_array(buffer, size);
+                dump_byte_array(buffer, 16);
             }
         } else if (cmd.substring(0, 4) == "CLSE") {
             Serial.print("CLSE\n");
