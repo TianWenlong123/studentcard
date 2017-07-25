@@ -2,3 +2,4 @@ stu/.idea/
 # Python:
 *.py[cod]
 .vscode
+*.db
