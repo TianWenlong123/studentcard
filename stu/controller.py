@@ -109,7 +109,7 @@ class Controller:
 
         varify = 1
         if money >= 50:
-            varify = self.card.varify()
+            varify = self.varify()
         if varify == 1:
             new_money = float(old_money - money * 100) / 100
             if new_money >= 0:
@@ -134,6 +134,7 @@ class Controller:
         print response
         index = response.index(':')+1
         str=response[index:index + 12]
+
         valid = str.decode('hex')
         if valid != 'yvalid':
             print 'InValid!'
@@ -168,8 +169,30 @@ class Controller:
         #修改记录
         self.changeRecord(2, money)
 
+    def varify(self):
+        password = raw_input("输入密码：\n")
+        cmd = self.card.readPasswdCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        print index
+        str = response[index:index + 12]
+        passwd = str.decode('hex')
+        if password==passwd:
+            #print "money : %d\n" %self.money
+            return 1
+        else:
+            return 0
+        
     def showInfo(self):
-
+        cmd = self.card.readValidCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':') + 1
+        print index
+        str = response[index:index + 12]
+        valid = str.decode('hex')
+        if valid != 'yvalid':
+            print 'InValid!'
+            return
         #read name
         cmd = self.card.readNameCmd()
         response = self.ser.sendCmd(cmd)
