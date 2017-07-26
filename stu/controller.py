@@ -185,6 +185,16 @@ class Controller:
             return 0
         
     def showInfo(self):
+        cmd = self.card.readValidCmd()
+        response = self.ser.sendCmd(cmd)
+        index = response.index(':')+1
+        print index
+        str = response[index:index + 12]
+        valid = str.decode('hex')
+        if valid != 'yvalid':
+            print 'InValid!'
+            return
+        
         self.card.showInfo()
 
     def waitCard(self):
