@@ -2,6 +2,7 @@
 from controller import *
 from data_type import MAC_PORT
 import platform
+import time
 
 portname = 'COM3'
 if not 'windows' in platform.platform().lower():
@@ -49,6 +50,10 @@ def main():
 
         if choice==7:
             break
+
+        time.sleep(3)
+
+
 
 if __name__ == '__main__':
 

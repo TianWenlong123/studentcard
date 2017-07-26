@@ -15,7 +15,7 @@ class MySerial(object):
 
     def sendCmd(self, cmd):
         cmd = cmd.upper()
-        print 'Send:',cmd
+        #print 'Send:',cmd
         self.port.write(cmd)
         response = self.port.readall()
         return response

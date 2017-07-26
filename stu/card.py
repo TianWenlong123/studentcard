@@ -21,6 +21,8 @@ BLOCK_SIZE = 16
 ID_SIZE           = 4
 MAX_RECORD        = 5
 
+NAME_BLOCK        =9
+DEPARTMENT_BLOCK  =10
 ID_BLOCK          = 4
 BEGIN_TIME_BLOCK  = 5
 END_TIME_BLOCK    = 6
@@ -30,14 +32,16 @@ RECORD_INFO_HEAD_BLOCK = 16
 RECORD_INFO_NUM_BLOCK = 17
 RECORD_POS_SECTOR = 4
 
-
 VALID_BLOCK       = 40
 PASSWD_BLOCK      = 44
 
 keys = ['FF' * 6 for i in range(16)]
+#keys[MONEY_BLOCK_BAK/4] = 'DECFAB1D52B7'
 
 class Card:
     def __init__(self):
+        self.name          = '王小明'
+        self.department    = '计算机'
         self.id            = '2014011111'
         self.id_len        = 10
         self.begin_time    = '20170827'
@@ -57,6 +61,16 @@ class Card:
         #考虑增加验证
         index = 0
 
+        #name
+        line = file.readline()
+        index = line.index('=')+2
+        self.name = line[index:len(line)-1]
+
+        #department
+        line = file.readline()
+        index = line.index('=')+2
+        self.department = line[index:len(line)-1]
+
         #id
         line = file.readline()
         index = line.index('=')+ 2
@@ -75,20 +89,6 @@ class Card:
         index = line.index('=') + 2
         self.passwd = line[index:index + self.passwd_len]
         return 1
-
-    #def showInfo(self):
-        #读取校园卡ID并查找数据库
-        # print "id : %s\n" %self.id
-        # print "begin time : %s\n" % self.begin_time
-        # print "end time : %s\n" % self.end_time
-        # #需要密码查看详细信息
-        # more = input("输入1查看详细信息(需要密码)：\n")
-        # if more == 1:
-        #     password = raw_input("输入密码：\n")
-        #     if password==self.passwd:
-        #         print "money : %d\n" %self.money
-        #     else:
-        #         print "密码错误"
 
     def writeCmd(self, blockAddr, size, data):
         'construct a write command'
@@ -112,6 +112,12 @@ class Card:
         id = int(self.id)
         data = hex(id)[2:] + '00' * (BLOCK_SIZE - ID_SIZE)
         return self.writeCmd(ID_BLOCK, BLOCK_SIZE, data)
+
+    def readIDCmd(self):
+        return self.readCmd(ID_BLOCK, BLOCK_SIZE)
+
+    def readBeginTimeCmd(self):
+        return self.readCmd(BEGIN_TIME_BLOCK, BLOCK_SIZE)
 
     def updateBeginTimeCmd(self, begin_time=None):
         if begin_time != None:
@@ -178,6 +184,32 @@ class Card:
         data = ('%08X' % cent) + '00' * (BLOCK_SIZE - 4)
         return self.writeCmd(MONEY_BLOCK_BAK, BLOCK_SIZE, data)
 
+    def readNameCmd(self):
+        return self.readCmd(NAME_BLOCK,BLOCK_SIZE)
+
+    def updateNameCmd(self):
+        name_data = self.name.encode('hex')
+        length = len(name_data)
+        #print self.name
+        #print length
+        data = ('%02x'%length)+name_data
+        while len(data) < 32:
+            data += '0'
+        return self.writeCmd(NAME_BLOCK,BLOCK_SIZE,data)
+
+    def readDepartmentCmd(self):
+        return self.readCmd(DEPARTMENT_BLOCK, BLOCK_SIZE)
+
+    def updateDepartmentCmd(self):
+        depart_data = self.department.encode('hex')
+        length = len(depart_data)
+        #print self.department
+        #print length
+        data = ('%02x' % length) + depart_data
+        while len(data) < 32:
+            data += '0'
+        return self.writeCmd(DEPARTMENT_BLOCK, BLOCK_SIZE, data)
+
     def readConsumeHeadCmd(self):
         return self.readCmd(RECORD_INFO_HEAD_BLOCK,BLOCK_SIZE)
 
@@ -199,7 +231,10 @@ class Card:
     def updateRecordCmd(self,head,position,posnum,consume_type,money):
         BLOCK = 4*(RECORD_POS_SECTOR+head)
         cmds=[]
+        #print position
         data = position.encode('hex')
+        #print data
+        length = len(data)
         while len(data) < 32:
             data += '0'
         cmds.append( self.writeCmd(BLOCK, BLOCK_SIZE, data) )
@@ -208,12 +243,30 @@ class Card:
         year = now_time.year
         month = now_time.month
         day = now_time.day
-        data = '%08x%04x%04x%02x%08x%04x%02s' % (year, month, day, consume_type, money, posnum, '0' * 2)
+        data = '%08x%04x%04x%02x%08x%04x%02x' % (year, month, day, consume_type, money, posnum, length)
         cmds.append(self.writeCmd(BLOCK+1, BLOCK_SIZE, data))
         return cmds
 
+
+    def readRecordPosCmd(self,head):
+        BLOCK = 4 * (RECORD_POS_SECTOR + head)
+        return self.readCmd(BLOCK,BLOCK_SIZE)
+
+    def readRecordCmd(self,head):
+        BLOCK = 4 * (RECORD_POS_SECTOR + head)
+        return self.readCmd(BLOCK+1,BLOCK_SIZE)
+
     def newCardInitCommands(self):
         cmds = []
+
+        #write name
+        cmd = self.updateNameCmd()
+        cmds.append(cmd)
+
+        # write department
+        cmd = self.updateDepartmentCmd()
+        cmds.append(cmd)
+
         # write student id number
         cmd = self.updateIDCmd()
         cmds.append(cmd)
@@ -241,7 +294,7 @@ class Card:
 
         cmd = self.updateConsumeNumCmd(0)
         cmds.append(cmd)
-        
+
         cmd = self.updateValidCmd('yvalid')
         cmds.append(cmd)
 
