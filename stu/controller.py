@@ -2,6 +2,9 @@
 from card import Card
 from myserial import MySerial, MAC_PORT
 
+PRIME1 = 39089
+PRIME2 = 40883
+
 class Controller:
     def __init__(self,position,posnum, portname=None):
         #初始化
@@ -103,7 +106,9 @@ class Controller:
         str = '0x' + response[index:index + 8]
         old_money_bak = int(str, 16)
 
-        if old_money != old_money_bak:
+        check = old_money * PRIME1 % PRIME2
+
+        if check != old_money_bak:
             print 'Money Error!'
             return
 
@@ -115,8 +120,10 @@ class Controller:
             if new_money >= 0:
                 cmd = self.card.updateMoneyCmd(new_money)
                 response = self.ser.sendCmd(cmd)
-                print response
-                cmd_bak = self.card.updateMoneyCmdBak(new_money)
+                #print response
+                check = new_money * PRIME1 % PRIME2
+                cmd_bak = self.card.updateMoneyCmdBak(check)
+
                 response = self.ser.sendCmd(cmd_bak)
                 # 修改记录
                 self.changeRecord(1, money)
@@ -143,7 +150,7 @@ class Controller:
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        print index
+        #print index
         str = '0x'+response[index:index + 8]
         #print str
         old_money = int(str, 16)
@@ -151,19 +158,22 @@ class Controller:
         cmd_bak = self.card.readMoneyCmdBak()
         response = self.ser.sendCmd(cmd_bak)
         index = response.index(':')+1
-        print index
+        #print index
         str = '0x' + response[index:index + 8]
         old_money_bak = int(str, 16)
-        
-        if old_money != old_money_bak :
+
+        check = old_money * PRIME1 % PRIME2
+
+        if check != old_money_bak :
             print 'Money Error!'
             return
 
         new_money = float(old_money + money*100)/100
-        print new_money
+        #print new_money
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
-        cmd_bak = self.card.updateMoneyCmdBak(new_money)
+        check = new_money * PRIME1 % PRIME2
+        cmd_bak = self.card.updateMoneyCmdBak(check)
         response = self.ser.sendCmd(cmd_bak)
 
         #修改记录
@@ -174,7 +184,7 @@ class Controller:
         cmd = self.card.readPasswdCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        print index
+        #print index
         str = response[index:index + 12]
         passwd = str.decode('hex')
         if password==passwd:
@@ -245,7 +255,7 @@ class Controller:
         #print index
         str = '0x' + response[index:index + 8]
         money = int(str, 16)
-        money = money/100
+        money = float(money)/100
         print 'Money: %d' % money
 
         # read record
