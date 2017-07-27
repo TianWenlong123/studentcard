@@ -126,7 +126,7 @@ void loop() {
                 break;
             } else {
                 Serial.print("OKAYREAD:");
-                dump_byte_array(buffer, size);
+                dump_byte_array(buffer, 16);
             }
         } else if (cmd.substring(0, 4) == "CLSE") {
             Serial.print("CLSE\n");
@@ -154,6 +154,8 @@ void loop() {
     mfrc522.PICC_HaltA();
     // Stop encryption on PCD
     mfrc522.PCD_StopCrypto1();
+    
+    delay(1000);
 }
 
 

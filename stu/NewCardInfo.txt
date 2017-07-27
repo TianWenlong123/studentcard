@@ -1,4 +1,6 @@
-id = 2014011111
+name = 王小明
+department = 计算机
+id = 2014011423
 begin_time = 20170827
 end_time = 20180827
 passwd = ******
