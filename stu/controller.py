@@ -27,6 +27,7 @@ class Controller:
         if(self.card.getInfo(filename)):
             cmds = self.card.newCardInitCommands()
             self.sendCmd(cmds)
+            print 'Completed!'
             
     def setInvalid(self):
         cmd = self.card.updateValidCmd('nvalid')
@@ -37,7 +38,9 @@ class Controller:
         
         cmd = self.card.updateMoneyCmdBak(0.0)
         response = self.ser.sendCmd(cmd)
-
+        
+        print 'Set invalid successfully!'
+        
     def sendCmd(self, cmds):
         for cmd in cmds:
             # print cmd
@@ -49,7 +52,8 @@ class Controller:
     def register(self,begint,endt):
         cmds = self.card.updateTimeCommands(begint,endt)
         self.sendCmd(cmds)
-
+        
+        print 'Log in successfully!'
     #def accesscrl(self):
 
     def changeRecord(self,consume_type,money):
@@ -112,7 +116,9 @@ class Controller:
         if check != old_money_bak:
             print 'Money Error!'
             return
-
+        
+        print 'old money = ' + str(old_money)
+        
         varify = 1
         if money >= 50:
             varify = self.varify()
@@ -128,11 +134,12 @@ class Controller:
                 response = self.ser.sendCmd(cmd_bak)
                 # 修改记录
                 self.changeRecord(1, money)
+                print 'new money = ' + str(new_money)
             else:
-                print "金额不足"
+                print 'insufficient funds'
                 return
         else:
-            print "密码错误"
+            print 'Password error'
             return
 
     def save(self,money):
@@ -169,6 +176,8 @@ class Controller:
             print 'Money Error!'
             return
 
+        print 'old money = ' + str(old_money)
+        
         new_money = float(old_money + money*100)/100
         #print new_money
         cmd = self.card.updateMoneyCmd(new_money)
@@ -176,7 +185,8 @@ class Controller:
         check = new_money * PRIME1 % PRIME2
         cmd_bak = self.card.updateMoneyCmdBak(check)
         response = self.ser.sendCmd(cmd_bak)
-
+        
+        print 'new money = ' + str(new_money)
         #修改记录
         self.changeRecord(2, money)
 
