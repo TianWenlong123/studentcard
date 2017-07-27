@@ -64,7 +64,7 @@ class Controller:
         str = '0x' + response[index:index+8]
         old_head = int(str, 16)
         new_head = old_head + 1
-        print new_head
+        #print new_head
         if new_head > 5:
             new_head = new_head-5
         cmd = self.card.updateConsumeHeadCmd(new_head)
@@ -75,7 +75,7 @@ class Controller:
         index = response.index(':')+1
         str = '0x' + response[index:index+8]
         num = int(str,16)
-        print num
+        #print num
         if num < 5:
             num = num + 1
             cmd = self.card.updateConsumeNumCmd(num)
@@ -89,7 +89,7 @@ class Controller:
         cmd = self.card.readValidCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
-        print index
+        #print index
 
         str = response[index:index + 12]
         valid = str.decode('hex')
@@ -103,40 +103,44 @@ class Controller:
         #print index
         str = '0x' + response[index:index + 8]
         old_money = int(str, 16)
-
+        old_money = float(old_money / 100.0)
         cmd_bak = self.card.readMoneyCmdBak()
         response = self.ser.sendCmd(cmd_bak)
         index = response.index(':')+1
         #print index
         str = '0x' + response[index:index + 8]
         old_money_bak = int(str, 16)
-
-        check = old_money * PRIME1 % PRIME2
-
+        old_money_bak = old_money_bak/100
+        check = old_money*100 * PRIME1 % PRIME2
+        #print 'check = %f'%check
+        #print 'old_money = %f'%old_money
+        #print 'old_money_bak = %f'%old_money_bak
         if check != old_money_bak:
             print 'Money Error!'
             return
         
-        print 'old money = ' + str(old_money)
-        
+        print '当前余额 ：%f ' % old_money
+        print '消费金额 ：%f ' %money
         varify = 1
         if money >= 50:
             varify = self.varify()
         if varify == 1:
-            new_money = float(old_money - money * 100) / 100
+            new_money = float(old_money - money )
             if new_money >= 0:
                 cmd = self.card.updateMoneyCmd(new_money)
                 response = self.ser.sendCmd(cmd)
                 #print response
                 check = new_money * PRIME1 % PRIME2
+                #print 'new_money : %f' % new_money
+                #print 'new check: %f' % check
                 cmd_bak = self.card.updateMoneyCmdBak(check)
 
                 response = self.ser.sendCmd(cmd_bak)
                 # 修改记录
                 self.changeRecord(1, money)
-                print 'new money = ' + str(new_money)
+                print '消费后余额 ：%f ' % new_money
             else:
-                print 'insufficient funds'
+                print 'insufficient funds %f ' %new_money
                 return
         else:
             print 'Password error'
@@ -154,7 +158,7 @@ class Controller:
         if valid != 'yvalid':
             print 'InValid!'
             return
-        
+
         cmd = self.card.readMoneyCmd()
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
@@ -162,31 +166,38 @@ class Controller:
         str = '0x'+response[index:index + 8]
         #print str
         old_money = int(str, 16)
-        
+        old_money = float(old_money/100.0)
+
         cmd_bak = self.card.readMoneyCmdBak()
         response = self.ser.sendCmd(cmd_bak)
         index = response.index(':')+1
         #print index
         str = '0x' + response[index:index + 8]
         old_money_bak = int(str, 16)
+        old_money_bak = old_money_bak/100
+        #print old_money_bak
 
-        check = old_money * PRIME1 % PRIME2
-
+        check = old_money *100 * PRIME1 % PRIME2
+        #print 'check = %f'%check
+        #print 'old_money = %f'%old_money
+        #print 'old_money_bak = %f'%old_money_bak
         if check != old_money_bak :
             print 'Money Error!'
             return
 
-        print 'old money = ' + str(old_money)
-        
-        new_money = float(old_money + money*100)/100
+        print '当前余额 ： %f ' % old_money
+        print '储值金额 ：%f ' % money
+        new_money = float(old_money + money)
         #print new_money
         cmd = self.card.updateMoneyCmd(new_money)
         response = self.ser.sendCmd(cmd)
-        check = new_money * PRIME1 % PRIME2
+        check = new_money * 100 * PRIME1 % PRIME2
+        #print 'new_money : %f'%new_money
+        #print 'new check: %f'%check
         cmd_bak = self.card.updateMoneyCmdBak(check)
         response = self.ser.sendCmd(cmd_bak)
-        
-        print 'new money = ' + str(new_money)
+
+        print '储值后余额 ： %f ' % new_money
         #修改记录
         self.changeRecord(2, money)
 
@@ -207,7 +218,7 @@ class Controller:
     def showInfo(self):
         cmd = self.card.readValidCmd()
         response = self.ser.sendCmd(cmd)
-        print response
+        #print response
         index = response.index(':') + 1
         #print index
         str = response[index:index + 12]
@@ -218,7 +229,7 @@ class Controller:
         #read name
         cmd = self.card.readNameCmd()
         response = self.ser.sendCmd(cmd)
-        print response
+        #print response
         index = response.index(':')+1
         length = int('0x'+response[index:index + 2],16)
         name = response[index+2:index+2+length].decode('hex')
@@ -267,8 +278,8 @@ class Controller:
         #print index
         str = '0x' + response[index:index + 8]
         money = int(str, 16)
-        money = float(money)/100
-        print 'Money: %d' % money
+        money = float(money)/float(100.0)
+        print 'Money: %f' % money
 
         # read record
         # 读头指针
@@ -284,11 +295,13 @@ class Controller:
         index = response.index(':')+1
         str = '0x' + response[index:index+8]
         num = int(str,16)
-        #print num
+        print '记录信息共%d条' % num
 
         #读记录
+
         i=0
         while i < num :
+            print '第%d条记录' % (i+1)
             temp_head = head-i
             if temp_head < 1:
                 temp_head = temp_head+5
@@ -301,6 +314,7 @@ class Controller:
             day = int('0x' + response[index + 12:index + 16], 16)
             consume_type = int('0x' + response[index + 16:index + 18], 16)
             con_money = int('0x' + response[index + 18:index + 26], 16)
+            con_money = float(con_money/100.0)
             posnum = int('0x' + response[index + 26:index + 30], 16)
             length = int('0x' + response[index + 30:index + 32], 16)
 
@@ -309,7 +323,7 @@ class Controller:
                 print '消费 -- ',
             else:
                 print '储值 -- ',
-            print '%d 元 -- 终端号 %d ' %(con_money,posnum),
+            print '%f 元 -- 终端号 %d ' %(con_money,posnum),
 
             cmd = self.card.readRecordPosCmd(temp_head)
             response = self.ser.sendCmd(cmd)
@@ -320,6 +334,7 @@ class Controller:
             print str
 
             i = i+1
+        print 'Completed!'
 
     def waitCard(self):
         text = ''

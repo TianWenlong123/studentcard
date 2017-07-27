@@ -36,13 +36,11 @@ def main():
             ctrl.register(begin_time,end_time)
 
         if choice==4:
-            #money = input("Please input consume amount\n")
-            money = 10.50
+            money = input("Please input consume amount\n")
             ctrl.consume(money)
 
         if choice==5:
-            # money = input("Please input save amount\n")
-            money = 10.50
+            money = input("Please input save amount\n")
             ctrl.save(money)
 
         if choice==6:

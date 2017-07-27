@@ -243,7 +243,7 @@ class Card:
         year = now_time.year
         month = now_time.month
         day = now_time.day
-        data = '%08x%04x%04x%02x%08x%04x%02x' % (year, month, day, consume_type, money, posnum, length)
+        data = '%08x%04x%04x%02x%08x%04x%02x' % (year, month, day, consume_type, money*100, posnum, length)
         cmds.append(self.writeCmd(BLOCK+1, BLOCK_SIZE, data))
         return cmds
 
@@ -301,8 +301,8 @@ class Card:
         cmd = self.updateValidCmd('yvalid')
         cmds.append(cmd)
 
-        cmd = self.closeCmd()
-        cmds.append(cmd)
+        #cmd = self.closeCmd()
+        #cmds.append(cmd)
 
         return cmds
 

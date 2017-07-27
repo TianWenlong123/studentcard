@@ -5,7 +5,7 @@ from myserial import MySerial, MAC_PORT
 import sqlite3
 from db_utils import *
 
-myserial = MySerial(MAC_PORT, timeout=1)
+myserial = MySerial()
 
 def main():
     myserial.port.readall()
