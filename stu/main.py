@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from controller import *
-from data_type import MAC_PORT
+from myserial import MAC_PORT
 import platform
 import time
 

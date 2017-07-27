@@ -86,11 +86,8 @@ class Controller:
         response = self.ser.sendCmd(cmd)
         index = response.index(':')+1
         print index
-<<<<<<< HEAD
-        str = '0x' + response[index:index + 12]
-=======
+
         str = response[index:index + 12]
->>>>>>> 6ceb51ccba46f20e19fd5a6e09399ceb0528bc60
         valid = str.decode('hex')
         if valid != 'yvalid':
             print 'InValid!'
@@ -142,16 +139,10 @@ class Controller:
         #需要增加验证
         cmd = self.card.readValidCmd()
         response = self.ser.sendCmd(cmd)
-<<<<<<< HEAD
-        index = response.index(':')+1
-        #print index
-        str = '0x' + response[index:index + 12]
-=======
-        print response
+
         index = response.index(':')+1
         str=response[index:index + 12]
 
->>>>>>> 6ceb51ccba46f20e19fd5a6e09399ceb0528bc60
         valid = str.decode('hex')
         if valid != 'yvalid':
             print 'InValid!'
@@ -206,6 +197,7 @@ class Controller:
     def showInfo(self):
         cmd = self.card.readValidCmd()
         response = self.ser.sendCmd(cmd)
+        print response
         index = response.index(':') + 1
         #print index
         str = response[index:index + 12]
